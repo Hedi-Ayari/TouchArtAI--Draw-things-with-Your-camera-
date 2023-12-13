@@ -3,9 +3,13 @@ import mediapipe as mp
 import numpy as np
 import os
 import math
+import time
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
+save_folder_path = './SavedImages'
+start_time = time.time()
+timeout_duration = 5  
 
 cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FPS, 5)
@@ -32,6 +36,8 @@ xp, yp = [0, 0]
 
 reset_interval = 50  # Reset canvas every 50 frames
 frame_count = 0
+if not os.path.exists(save_folder_path):
+    os.makedirs(save_folder_path)
 
 with mp_hands.Hands(min_detection_confidence=0.85, min_tracking_confidence=0.5, max_num_hands=1) as hands:
     while cap.isOpened():
@@ -107,6 +113,16 @@ with mp_hands.Hands(min_detection_confidence=0.85, min_tracking_confidence=0.5, 
                         cv2.circle(image, (x1, y1), int(thickness / 2), drawColor, cv2.FILLED)
                         if xp == 0 and yp == 0:
                             xp, yp = [x1, y1]
+                    if points[4][1] < points[8][1] and points[8][1] < points[12][1] and points[12][1] < points[16][1] and \
+                        points[16][1] < points[20][1] and time.time() - start_time >=4 :
+                    # Save the canvas image to the folder
+                        img_path = os.path.join(save_folder_path, f"hand_{frame_count}.png")
+                        cv2.imwrite(img_path, imgCanvas)
+                        print(f"Saved image: {img_path}")
+                        
+                        start_time = time.time()
+
+
 
                     ## Clear the canvas when the hand is closed
                     if all(fingers[i] == 0 for i in range(0, 5)):
